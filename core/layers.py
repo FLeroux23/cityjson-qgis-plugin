@@ -22,7 +22,31 @@ class BaseLayerManager:
 
     def prepare_attributes(self):
         """Prepares the attributes of the vector layer."""
-        self._fields = self._fields_builder.get_fields()
+        all_fields = self._fields_builder.get_fields()
+
+        core_field_names = ["uid", "type", "parents", "children", "lod"]
+        surface_prefix = "surface."
+        core_fields = QgsFields()
+        surface_fields = QgsFields()
+        attribute_fields = QgsFields()
+
+        for field in all_fields:
+            if field.name() in core_field_names:
+                core_fields.append(field)
+            elif field.name().startswith(surface_prefix):
+                surface_fields.append(field)
+            else:
+                attribute_fields.append(field)
+
+        reordered_fields = QgsFields()
+        for field in core_fields:
+            reordered_fields.append(field)
+        for field in surface_fields:
+            reordered_fields.append(field)
+        for field in attribute_fields:
+            reordered_fields.append(field)
+
+        self._fields = reordered_fields
 
         for vl in self.get_all_layers():
             pr = vl.dataProvider()
